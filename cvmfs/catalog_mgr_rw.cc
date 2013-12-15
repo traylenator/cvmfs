@@ -581,7 +581,7 @@ void WritableCatalogManager::CreateNestedCatalog(const std::string &mountpoint)
   // Add the newly created nested catalog to the references of the containing
   // catalog
   old_catalog->InsertNestedCatalog(new_catalog->path().ToString(), NULL,
-                                   shash::Any(shash::kSha1));
+                                   shash::Any(spooler_->GetHashAlgorithm()));
 
   // Fix subtree counters in new nested catalogs: subtree is the sum of all
   // entries of all "grand-nested" catalogs
