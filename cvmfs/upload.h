@@ -213,6 +213,10 @@ namespace upload
      */
     unsigned int GetNumberOfErrors() const;
 
+    shash::Algorithms GetHashAlgorithm() const {
+      return spooler_definition_.hash_algorithm;
+    }
+
 
    protected:
     /**

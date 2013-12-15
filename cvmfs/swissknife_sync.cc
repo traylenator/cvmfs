@@ -91,8 +91,16 @@ int swissknife::CommandCreate::Main(const swissknife::ArgumentList &args) {
     }
     SetLogVerbosity(static_cast<LogLevels>(log_level));
   }
+  shash::Algorithms hash_algorithm = shash::kSha1;
+  if (args.find('a') != args.end()) {
+    hash_algorithm = shash::ParseHashAlgorithm(*args.find('a')->second);
+    if (hash_algorithm == shash::kAny) {
+      PrintError("unknown hash algorithm");
+      return 1;
+    }
+  }
 
-  const upload::SpoolerDefinition sd(spooler_definition);
+  const upload::SpoolerDefinition sd(spooler_definition, hash_algorithm);
   upload::Spooler *spooler = upload::Spooler::Construct(sd);
   assert(spooler);
 
@@ -120,8 +128,16 @@ int swissknife::CommandUpload::Main(const swissknife::ArgumentList &args) {
   const string source = *args.find('i')->second;
   const string dest = *args.find('o')->second;
   const string spooler_definition = *args.find('r')->second;
+  shash::Algorithms hash_algorithm = shash::kSha1;
+  if (args.find('a') != args.end()) {
+    hash_algorithm = shash::ParseHashAlgorithm(*args.find('a')->second);
+    if (hash_algorithm == shash::kAny) {
+      PrintError("unknown hash algorithm");
+      return 1;
+    }
+  }
 
-  const upload::SpoolerDefinition sd(spooler_definition);
+  const upload::SpoolerDefinition sd(spooler_definition, hash_algorithm);
   upload::Spooler *spooler = upload::Spooler::Construct(sd);
   assert(spooler);
   spooler->Upload(source, dest);
@@ -140,7 +156,8 @@ int swissknife::CommandPeek::Main(const swissknife::ArgumentList &args) {
   const string file_to_peek = *args.find('d')->second;
   const string spooler_definition = *args.find('r')->second;
 
-  const upload::SpoolerDefinition sd(spooler_definition);
+  // Hash doesn't matter
+  const upload::SpoolerDefinition sd(spooler_definition, shash::kAny);
   upload::Spooler *spooler = upload::Spooler::Construct(sd);
   assert(spooler);
   const bool success = spooler->Peek(file_to_peek);
@@ -163,7 +180,8 @@ int swissknife::CommandRemove::Main(const ArgumentList &args) {
   const string file_to_delete     = *args.find('o')->second;
   const string spooler_definition = *args.find('r')->second;
 
-  const upload::SpoolerDefinition sd(spooler_definition);
+  // Hash doesn't matter
+  const upload::SpoolerDefinition sd(spooler_definition, shash::kAny);
   upload::Spooler *spooler = upload::Spooler::Construct(sd);
   assert(spooler);
   const bool success = spooler->Remove(file_to_delete);
@@ -250,12 +268,21 @@ int swissknife::CommandSync::Main(const swissknife::ArgumentList &args) {
       return 2;
     }
   }
+  shash::Algorithms hash_algorithm = shash::kSha1;
+  if (args.find('e') != args.end()) {
+    hash_algorithm = shash::ParseHashAlgorithm(*args.find('e')->second);
+    if (hash_algorithm == shash::kAny) {
+      PrintError("unknown hash algorithm");
+      return 1;
+    }
+  }
 
   if (!CheckParams(params)) return 2;
 
   // Start spooler
   const upload::SpoolerDefinition spooler_definition(
     params.spooler_definition,
+    hash_algorithm,
     params.use_file_chunking,
     params.min_file_chunk_size,
     params.avg_file_chunk_size,
@@ -267,7 +294,7 @@ int swissknife::CommandSync::Main(const swissknife::ArgumentList &args) {
   g_download_manager->Init(1, true);
 
   catalog::WritableCatalogManager
-    catalog_manager(shash::Any(shash::kSha1, shash::HexPtr(params.base_hash)),
+    catalog_manager(shash::MkFromHexPtr(shash::HexPtr(params.base_hash)),
                     params.stratum0, params.dir_temp, params.spooler,
                     g_download_manager);
   publish::SyncMediator mediator(&catalog_manager, &params);
