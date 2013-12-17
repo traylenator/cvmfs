@@ -1536,6 +1536,9 @@ static void cvmfs_getxattr(fuse_req_t req, fuse_ino_t ino, const char *name,
       attribute_value = StringifyInt((rx/1024)/time);
   } else if (attr == "user.fqrn") {
     attribute_value = *repository_name_;
+  } else if (attr == "user.inode_max") {
+    attribute_value = StringifyInt(
+      inode_generation_info_.inode_generation + catalog_manager_->inode_gauge());
   } else {
     fuse_reply_err(req, ENOATTR);
     return;
@@ -1570,7 +1573,7 @@ static void cvmfs_listxattr(fuse_req_t req, fuse_ino_t ino, size_t size) {
     "user.root_hash\0user.expires\0user.maxfd\0user.usedfd\0user.nioerr\0"
     "user.host\0user.proxy\0user.uptime\0user.nclg\0user.nopen\0user.ndownload\0"
     "user.timeout\0user.timeout_direct\0user.rx\0user.speed\0user.fqrn\0"
-    "user.ndiropen\0";
+    "user.ndiropen\0user.inode_max\0";
   string attribute_list(base_list, sizeof(base_list)-1);
   if (!d.checksum().IsNull()) {
     const char regular_file_list[] = "user.hash\0user.lhash\0";
@@ -1778,6 +1781,7 @@ static int Init(const loader::LoaderExports *loader_exports) {
   string trusted_certs = "/etc/grid-security/certificates";
   map<uint64_t, uint64_t> uid_map;
   map<uint64_t, uint64_t> gid_map;
+  uint64_t initial_generation = 0;
 
   cvmfs::boot_time_ = loader_exports->boot_time;
   cvmfs::backoff_throttle_ = new BackoffThrottle();
@@ -1903,6 +1907,9 @@ static int Init(const loader::LoaderExports *loader_exports) {
       *g_boot_error = "failed to parse gid map " + parameter;
       return loader::kFailOptions;
     }
+  }
+  if (options::GetValue("CVMFS_INITIAL_GENERATION", &parameter)) {
+    initial_generation = String2Uint64(parameter);
   }
 
   // Fill cvmfs option variables from configuration
@@ -2197,6 +2204,7 @@ static int Init(const loader::LoaderExports *loader_exports) {
   LogCvmfs(kLogCvmfs, kLogDebug, "fuse inode size is %d bits",
            sizeof(fuse_ino_t) * 8);
   cvmfs::inode_annotation_ = new catalog::InodeGenerationAnnotation();
+  cvmfs::inode_annotation_->IncGeneration(initial_generation);
   cvmfs::catalog_manager_ =
     new cache::CatalogManager(*cvmfs::repository_name_,
                               cvmfs::signature_manager_,
@@ -2263,6 +2271,8 @@ static int Init(const loader::LoaderExports *loader_exports) {
   }
   cvmfs::inode_generation_info_.initial_revision =
     cvmfs::catalog_manager_->GetRevision();
+  cvmfs::inode_generation_info_.inode_generation =
+    cvmfs::inode_annotation_->GetGeneration();
   LogCvmfs(kLogCvmfs, kLogDebug, "root inode is %"PRIu64,
            uint64_t(cvmfs::catalog_manager_->GetRootInode()));
 
