@@ -12,15 +12,15 @@ using namespace swissknife;
 using namespace std;  // NOLINT
 
 const size_t kHashSubtreeLength = 2;
-const size_t kHashStringLength  = 40;
 
 CommandScrub::StoredFile::StoredFile(const std::string &path,
                                      const std::string &expected_hash) :
   AbstractFile(path, GetFileSize(path)),
-  hash_done_(false),
-  hash_context_(shash::kSha1),
-  expected_hash_(shash::kSha1, shash::HexPtr(expected_hash))
+  hash_done_(false)
 {
+  expected_hash_ = shash::MkFromHexPtr(shash::HexPtr(expected_hash));
+  hash_context_.algorithm = expected_hash_.algorithm;
+  hash_context_.size = shash::GetContextSize(expected_hash_.algorithm);
   hash_context_.buffer = malloc(hash_context_.size);
   shash::Init(hash_context_);
 }
@@ -124,22 +124,10 @@ std::string CommandScrub::CheckPathAndExtractHash(
     return "";
   }
 
-  // check for a fitting file name length of the object
-  if ( (!has_object_modifier &&
-        file_name.size() != kHashStringLength - kHashSubtreeLength)
-       ||
-       (has_object_modifier &&
-        file_name.size() != kHashStringLength - kHashSubtreeLength + 1))
-  {
-    PrintWarning("malformed file name length: " +
-                 StringifyInt(file_name.size()), full_path);
-    return "";
-  }
-
   // reconstruct the hash string
   const std::string hash_string = (!has_object_modifier)
     ? relative_path + file_name
-    : relative_path + file_name.substr(0, kHashStringLength - kHashSubtreeLength);
+    : relative_path + file_name.substr(0, file_name.length()-1);
   return hash_string;
 }
 
