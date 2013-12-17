@@ -453,14 +453,14 @@ void WritableCatalog::InsertNestedCatalog(const string &mountpoint,
                                           Catalog *attached_reference,
                                           const shash::Any content_hash)
 {
-  const string sha1_string = (!content_hash.IsNull()) ?
+  const string hash_string = (!content_hash.IsNull()) ?
                              content_hash.ToString() : "";
 
   Sql stmt(database(),
     "INSERT INTO nested_catalogs (path, sha1) VALUES (:p, :sha1);");
   bool retval =
     stmt.BindText(1, mountpoint) &&
-    stmt.BindText(2, sha1_string) &&
+    stmt.BindText(2, hash_string) &&
     stmt.Execute();
   assert(retval);
 
@@ -519,13 +519,13 @@ void WritableCatalog::RemoveNestedCatalog(const string &mountpoint,
 void WritableCatalog::UpdateNestedCatalog(const string &path,
                                           const shash::Any &hash)
 {
-  const string sha1_str = hash.ToString();
+  const string hash_str = hash.ToString();
   const string sql = "UPDATE nested_catalogs SET sha1 = :sha1 "
     "WHERE path = :path;";
   Sql stmt(database(), sql);
 
   bool retval =
-    stmt.BindText(1, sha1_str) &&
+    stmt.BindText(1, hash_str) &&
     stmt.BindText(2, path) &&
     stmt.Execute();
 
