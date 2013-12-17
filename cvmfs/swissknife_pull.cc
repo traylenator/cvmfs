@@ -41,6 +41,7 @@ namespace {
 
 struct ChunkJob {
   unsigned char type;
+  shash::Algorithms hash_algorithm;
   unsigned char digest[shash::kMaxDigestSize];
 };
 
@@ -128,7 +129,7 @@ static void StoreBuffer(const unsigned char *buffer, const unsigned size,
   assert(ftmp);
   int retval;
   if (compress) {
-    shash::Any dummy(shash::kSha1);
+    shash::Any dummy(shash::kSha1);  // hardcoded hash no problem, unsused
     retval = zlib::CompressMem2File(buffer, size, ftmp, &dummy);
   } else {
     retval = CopyMem2File(buffer, size, ftmp);
@@ -153,7 +154,7 @@ static void *MainWorker(void *data) {
     if (next_chunk.type == 255)
       break;
 
-    shash::Any chunk_hash(shash::kSha1, next_chunk.digest,
+    shash::Any chunk_hash(next_chunk.hash_algorithm, next_chunk.digest,
                           shash::kDigestSizes[shash::kSha1]);
     LogCvmfs(kLogCvmfs, kLogVerboseMsg, "processing chunk %s",
              chunk_hash.ToString().c_str());
@@ -272,7 +273,8 @@ static bool Pull(const shash::Any &catalog_hash, const std::string &path,
       default:
         next_chunk.type = '\0';
     }
-    memcpy(next_chunk.digest, chunk_hash.digest, sizeof(chunk_hash.digest));
+    next_chunk.hash_algorithm = chunk_hash.algorithm;
+    memcpy(next_chunk.digest, chunk_hash.digest, chunk_hash.GetDigestSize());
     WritePipe(pipe_chunks[1], &next_chunk, sizeof(next_chunk));
     atomic_inc64(&chunk_queue);
   }
@@ -445,6 +447,7 @@ int swissknife::CommandPull::Main(const swissknife::ArgumentList &args) {
   }
 
   // Manifest available, now the spooler's hash algorithm can be determined
+  // That doesn't actually matter because the replication does no re-hashing
   {
     const upload::SpoolerDefinition
       spooler_definition(spooler_definition_str,
