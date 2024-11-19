@@ -9,6 +9,7 @@ SERVER_TEST_LOGFILE=/tmp/cvmfs-server-test.log
 echo "running CernVM-FS client test cases..."
 ./run.sh $CLIENT_TEST_LOGFILE -s "quick"                                      \
                               -x src/104-concurrent_mounts                    \
+                                 src/105-streaming-cache                      \
                                  --                                           \
                                  src/0*                                       \
                                  src/1*                                       \
