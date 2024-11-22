@@ -1425,7 +1425,13 @@ bool MountPoint::CreateDownloadManagers() {
       download_mgr_->SetFailoverIndefinitely();
   }
 
-  if (options_mgr_->GetValue("CVMFS_SERVER_URL", &optarg)) {
+  if (options_mgr_->GetValue("CVMFS_METALINK_URL", &optarg)) {
+    download_mgr_->SetMetalinkChain(optarg);  
+    // host chain will be set later when the metalink server is contacted
+    download_mgr_->SetHostChain("");
+    // metalink requires redirects
+    download_mgr_->EnableRedirects();
+  } else if (options_mgr_->GetValue("CVMFS_SERVER_URL", &optarg)) {
     download_mgr_->SetHostChain(optarg);
   }
 
@@ -2147,7 +2153,13 @@ bool MountPoint::SetupExternalDownloadMgr(bool dogeosort) {
   }
   external_download_mgr_->SetTimeout(timeout, timeout_direct);
 
-  if (options_mgr_->GetValue("CVMFS_EXTERNAL_URL", &optarg)) {
+  if (options_mgr_->GetValue("CVMFS_EXTERNAL_METALINK", &optarg)) {
+    external_download_mgr_->SetMetalinkChain(optarg);  
+    // host chain will be set later when the metalink server is contacted
+    external_download_mgr_->SetHostChain("");
+    // metalink requires redirects
+    external_download_mgr_->EnableRedirects();
+  } else if (options_mgr_->GetValue("CVMFS_EXTERNAL_URL", &optarg)) {
     external_download_mgr_->SetHostChain(optarg);
     if (dogeosort) {
       std::vector<std::string> host_chain;
@@ -2217,8 +2229,13 @@ void MountPoint::SetupHttpTuning() {
 
   if (options_mgr_->GetValue("CVMFS_LOW_SPEED_LIMIT", &optarg))
     download_mgr_->SetLowSpeedLimit(String2Uint64(optarg));
-  if (options_mgr_->GetValue("CVMFS_PROXY_RESET_AFTER", &optarg))
+  if (options_mgr_->GetValue("CVMFS_PROXY_RESET_AFTER", &optarg)) {
     download_mgr_->SetProxyGroupResetDelay(String2Uint64(optarg));
+    // Use the proxy reset delay as the default for the metalink reset delay
+    download_mgr_->SetMetalinkResetDelay(String2Uint64(optarg));
+  }
+  if (options_mgr_->GetValue("CVMFS_METALINK_RESET_AFTER", &optarg))
+    download_mgr_->SetMetalinkResetDelay(String2Uint64(optarg));
   if (options_mgr_->GetValue("CVMFS_HOST_RESET_AFTER", &optarg))
     download_mgr_->SetHostResetDelay(String2Uint64(optarg));
 
