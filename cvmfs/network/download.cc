@@ -28,7 +28,7 @@
 // NOLINTNEXTLINE
 #define __STDC_FORMAT_MACROS
 
-#include "cvmfs_config.h"
+
 #include "download.h"
 
 #include <alloca.h>
@@ -1878,7 +1878,7 @@ void DownloadManager::InitHeaders() {
 #else
   cernvm_id += "Fuse ";
 #endif
-  cernvm_id += string(VERSION);
+  cernvm_id += string(CVMFS_VERSION);
   if (getenv("CERNVM_UUID") != NULL) {
     cernvm_id += " " +
     sanitizer::InputSanitizer("az AZ 09 -").Filter(getenv("CERNVM_UUID"));

@@ -16,7 +16,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include "cvmfs_config.h"
+
 #include "talk.h"
 
 #include <errno.h>
@@ -765,7 +765,7 @@ void *TalkManager::MainResponder(void *data) {
       mount_point->inode_tracker()->EndEnumerate(&cursor);
       talk_mgr->Answer(con_fd, result);
     } else if (line == "version") {
-      string version_str = string(VERSION) + " (CernVM-FS Fuse Module)\n" +
+      const string version_str = string(CVMFS_VERSION) + " (CernVM-FS Fuse Module)\n" +
         cvmfs::loader_exports_->loader_version + " (Loader)\n";
       talk_mgr->Answer(con_fd, version_str);
     } else if (line == "version patchlevel") {
