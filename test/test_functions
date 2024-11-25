@@ -782,6 +782,12 @@ create_repo() {
     destroy_repo $repo || return 101
   fi
 
+  # mkfs will no longer overwrite a manifest in an existing bucket, need to remove it manually
+  if [ -f "${CVMFS_TEST_S3_STORAGE}/${CVMFS_TEST_REPO}/.cvmfspublished" ]; then
+    sudo rm -f "${CVMFS_TEST_S3_STORAGE}/${CVMFS_TEST_REPO}/.cvmfspublished"
+  fi
+
+
   # Note: We need to do a non-graceful (brutal?) restart of Apache on Fedora 26+ to avoid
   #       a timeout issue
   if [ x"$(which apachectl)" != x"" ]; then
