@@ -783,8 +783,8 @@ create_repo() {
   fi
 
   # mkfs will no longer overwrite a manifest in an existing bucket, need to remove it manually
-  if [ -f "${CVMFS_TEST_S3_STORAGE}/${CVMFS_TEST_REPO}/.cvmfspublished" ]; then
-    sudo rm -f "${CVMFS_TEST_S3_STORAGE}/${CVMFS_TEST_REPO}/.cvmfspublished"
+  if [ -f "${CVMFS_TEST_S3_STORAGE}/$repo/.cvmfspublished" ]; then
+    sudo rm -f "${CVMFS_TEST_S3_STORAGE}/$repo/.cvmfspublished"
   fi
 
 
