@@ -1,3 +1,16 @@
+2.12.4:
+  * [client] Fix cvmfs_config fsck -q to work with rmd160, shake128 hashes (#3739)
+  * [server] Fix mkfs overwrite-manifest check when upstream is gateway (#3740)
+
+2.12.3:
+  * [client] Don't commit empty certificates to cache (#3728)
+
+2.12.2:
+  * [client] Add cvmfs_config fsck -q(uick) to check for zeroed files in cache (#3726)
+
+2.12.1:
+  * [rpm] bugfix for reload service after rpm upgrades (#3725)
+
 2.12.0:
   * [client] FUSE-T support for macOS (#3587)
   * [server] Add metalink support (#3683)
