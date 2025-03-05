@@ -375,23 +375,45 @@ popd
 
 %if 0%{?el4}
 %else
+# apply this to all subpackages that need to stay in version sync
+%define check_transaction \
+  [ -d "/var/spool/cvmfs"  ]          || exit 0; \
+  [ -d "/etc/cvmfs/repositories.d/" ] || exit 0; \
+  for repo in /var/spool/cvmfs/*; do \
+    [ -d $repo ] && [ ! -f /etc/cvmfs/repositories.d/$(basename $repo)/replica.conf ] || continue; \
+    if [ -f ${repo}/in_transaction.lock ] || \
+       [ -d ${repo}/in_transaction      ] || \
+       [ -f ${repo}/in_transaction      ]; then \
+      echo "     Found open CernVM-FS repository transactions."           >&2; \
+      echo "     Please abort or publish them before updating CernVM-FS." >&2; \
+      exit 1; \
+    fi; \
+  done
+
+%pretrans
+%check_transaction
+
+%pretrans libs
+%check_transaction
+
+%pretrans fuse3
+%check_transaction
+
+%pretrans devel
+%check_transaction
+
 %pretrans server
-[ -d "/var/spool/cvmfs"  ]          || exit 0
-[ -d "/etc/cvmfs/repositories.d/" ] || exit 0
+%check_transaction
 
-for repo in /var/spool/cvmfs/*; do
-  [ -d $repo ] && [ ! -f /etc/cvmfs/repositories.d/$(basename $repo)/replica.conf ] || continue
+%pretrans shrinkwrap
+%check_transaction
 
-  if [ -f ${repo}/in_transaction.lock ] || \
-     [ -d ${repo}/in_transaction      ] || \
-     [ -f ${repo}/in_transaction      ]; then
-    echo "     Found open CernVM-FS repository transactions."           >&2
-    echo "     Please abort or publish them before updating CernVM-FS." >&2
-    exit 1
-  fi
-done
+%pretrans unittests
+%check_transaction
 
-exit 0
+%pretrans gateway
+%check_transaction
+
 %endif
 
 %pre
@@ -732,6 +754,9 @@ systemctl daemon-reload
 %endif
 
 %changelog
+* Mon Mar 3 2025 Dave Dykstra <dwd@cern.ch>> - 2.12.7-2
+- Apply %pretrans transaction check to all subpackages that need to
+  have their version stay in sync
 * Mon Dec 2 2024 Valentin Volkl <vavolkl@cern.ch> - 2.12
 - Add cvmfs-snapshotter package
 * Tue Nov 7 2023 Valentin Volkl <vavolkl@cern.ch> - 2.11.2
