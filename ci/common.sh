@@ -94,6 +94,7 @@ create_cvmfs_source_tarball() {
                       ${source_directory}/doc                \
                       ${source_directory}/externals          \
                       ${source_directory}/gateway            \
+                      ${source_directory}/snapshotter        \
                       ${source_directory}/mount              \
                       ${source_directory}/test               \
                       ${source_directory}/ducc               \
