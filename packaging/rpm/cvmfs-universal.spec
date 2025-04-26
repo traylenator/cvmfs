@@ -394,8 +394,10 @@ popd
 %pretrans libs
 %check_transaction
 
+%if 0%{?build_fuse3}
 %pretrans fuse3
 %check_transaction
+%endif
 
 %pretrans devel
 %check_transaction
