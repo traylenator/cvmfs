@@ -20,12 +20,10 @@
 %define selinux_cvmfs_server 1
 %endif
 
-%if 0%{?rhel} >= 7 || 0%{?fedora} >= 29
-  %if "%{?_arch}" != "aarch64"
+%if 0%{?rhel} >= 8 || 0%{?fedora} >= 38
     %define build_gateway 1
     %define build_ducc 1
     %define build_snapshotter 1
-  %endif
 %endif
 %if 0%{?sle15}
   %define build_gateway 1
@@ -281,7 +279,7 @@ CernVM-FS unit tests binary.  This RPM is not required except for testing.
 %package gateway
 Summary: CernVM-FS Repository Gateway
 Group: Application/System
-BuildRequires: %{cvmfs_go} >= 1.11.4
+BuildRequires: %{cvmfs_go} >= 1.21.10
 Requires: cvmfs-server = %{version}-%{release}, psmisc
 %description gateway
 The CernVM-FS repository gateway service enables multiple remote publishers
@@ -292,7 +290,7 @@ to write to the same repository.
 %package ducc
 Summary: ducc: Daemon Unpacking Containers in CVMFS
 Group: Application/System
-BuildRequires: %{cvmfs_go} >= 1.11.4
+BuildRequires: %{cvmfs_go} >= 1.21.10
 %description ducc
 Daemon to automatically unpack and expose containers images into CernVM-FS
 %endif
@@ -301,7 +299,7 @@ Daemon to automatically unpack and expose containers images into CernVM-FS
 %package snapshotter
 Summary: cvmfs-snapshotter: Lazy loading of containerd layers from CVMFS
 Group: Application/System
-BuildRequires: %{cvmfs_go} >= 1.11.4
+BuildRequires: %{cvmfs_go} >= 1.21.10
 %description snapshotter
 A containerd snapshotter inspired by StarGZ that gives instant container startup
 %endif
@@ -411,9 +409,10 @@ popd
 %pretrans unittests
 %check_transaction
 
+%if 0%{?build_gateway}
 %pretrans gateway
 %check_transaction
-
+%endif
 %endif
 
 %pre
@@ -555,8 +554,11 @@ restorecon -R /var/log/cvmfs
 rm -f /var/lib/cvmfs-server/geo/*.dat
 /sbin/ldconfig
 
+
+%if 0%{?build_ducc}
 %post ducc
 setcap "cap_dac_override=ep cap_dac_read_search=ep cap_fowner=ep cap_chown=ep cap_sys_admin=ep cap_mknod=ep" /usr/bin/cvmfs_ducc
+%endif
 
 %preun
 if [ $1 = 0 ] ; then
