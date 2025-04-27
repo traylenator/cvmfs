@@ -1,4 +1,4 @@
-name: CI_DUCC
+name: CI_snapshotter
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   docker:
-    name: "DUCC CI"
+    name: "CI_snapshotter"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
