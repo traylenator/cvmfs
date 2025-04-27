@@ -1,5 +1,3 @@
-# github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
-## explicit
 # github.com/Microsoft/go-winio v0.6.2
 ## explicit; go 1.21
 github.com/Microsoft/go-winio
@@ -7,8 +5,6 @@ github.com/Microsoft/go-winio/internal/fs
 github.com/Microsoft/go-winio/internal/socket
 github.com/Microsoft/go-winio/internal/stringbuffer
 github.com/Microsoft/go-winio/pkg/guid
-# github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5
-## explicit
 # github.com/aoliveti/curling v1.1.0
 ## explicit; go 1.21
 github.com/aoliveti/curling
@@ -81,10 +77,6 @@ github.com/gogo/protobuf/proto
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
-# github.com/gorilla/context v1.1.1
-## explicit
-# github.com/gorilla/mux v1.6.2
-## explicit
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap
@@ -98,13 +90,9 @@ github.com/klauspost/compress/internal/le
 github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/konsorten/go-windows-terminal-sequences v1.0.3
-## explicit
 # github.com/mattn/go-runewidth v0.0.16
 ## explicit; go 1.9
 github.com/mattn/go-runewidth
-# github.com/mattn/go-shellwords v1.0.12
-## explicit; go 1.13
 # github.com/moby/docker-image-spec v1.3.1
 ## explicit; go 1.18
 github.com/moby/docker-image-spec/specs-go/v1
@@ -143,6 +131,10 @@ github.com/moby/sys/user
 # github.com/moby/sys/userns v0.1.0
 ## explicit; go 1.21
 github.com/moby/sys/userns
+# github.com/moby/term v0.5.2
+## explicit; go 1.18
+# github.com/morikuni/aec v1.0.0
+## explicit
 # github.com/olekukonko/tablewriter v0.0.5
 ## explicit; go 1.12
 github.com/olekukonko/tablewriter
@@ -154,10 +146,6 @@ github.com/opencontainers/go-digest/digestset
 ## explicit; go 1.18
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/opencontainers/runc v1.2.6
-## explicit; go 1.22
-# github.com/opencontainers/runtime-spec v1.2.1
-## explicit
 # github.com/opencontainers/selinux v1.11.0
 ## explicit; go 1.19
 # github.com/otiai10/copy v1.14.1
@@ -188,8 +176,6 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.6
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
-## explicit
 # github.com/vbatts/tar-split v0.12.1
 ## explicit; go 1.17
 github.com/vbatts/tar-split/archive/tar
@@ -218,6 +204,8 @@ go.opentelemetry.io/otel/internal/global
 go.opentelemetry.io/otel/propagation
 go.opentelemetry.io/otel/semconv/v1.20.0
 go.opentelemetry.io/otel/semconv/v1.26.0
+# go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.35.0
+## explicit; go 1.22.0
 # go.opentelemetry.io/otel/metric v1.35.0
 ## explicit; go 1.22.0
 go.opentelemetry.io/otel/metric
@@ -229,8 +217,6 @@ go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/trace/embedded
 go.opentelemetry.io/otel/trace/internal/telemetry
 go.opentelemetry.io/otel/trace/noop
-# golang.org/x/crypto v0.37.0
-## explicit; go 1.23.0
 # golang.org/x/net v0.39.0
 ## explicit; go 1.23.0
 # golang.org/x/sync v0.13.0
@@ -244,10 +230,6 @@ golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
 # golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
 ## explicit
-# google.golang.org/grpc v1.18.0
-## explicit
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
-# gotest.tools v2.2.0+incompatible
-## explicit
