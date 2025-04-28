@@ -48,9 +48,9 @@ cvmfs_server_ingest() {
       -d | --delete )
         if [ "x$to_delete" = "x" ]
         then
-          to_delete=$2
+          to_delete="$(echo $2 | tr -s /)"
         else
-          to_delete=$to_delete:$2
+          to_delete="$to_delete///$(echo $2 | tr -s /)"
           multiple_delete=1
         fi
         ;;
@@ -77,12 +77,12 @@ cvmfs_server_ingest() {
         name_from_absolute_arg=$(echo $base_dir | cut -d'/' -f3)
         base_dir=$(echo $base_dir | cut -d'/' -f 4-)
   esac
-  for to_delete_path in $(echo $to_delete | sed "s/:/ /g"); do
+  for to_delete_path in $(echo $to_delete | sed "s;///; ;g"); do
     case x"$to_delete_path" in
         x/cvmfs/*) 
           echo "Warning: interpreting the base_dir as absolute path. Remove leading slash to get a relative path to the mountpoint"
           name_from_absolute_arg2=$(echo $to_delete_path | cut -d'/' -f3)
-          to_delete=$(echo $to_delete_path | cut -d'/' -f 4-)
+          to_delete=$(echo $to_delete_path  | cut -d'/' -f 4-)
           if [ ! x$name_from_absolute_arg = "x" ] ; then
             if [ ! x$name_from_absolute_arg = x$name_from_absolute_arg2 ] ; then
               die "Cannot use different repositories in same transaction: $name_from_absolute_arg2, $name_from_absolute_arg"
@@ -318,7 +318,7 @@ cvmfs_server_ingest() {
   fi
 
   if [ ! x"$to_delete" = "x" ]; then
-    ingest_command="$ingest_command -D $to_delete"
+      ingest_command="$ingest_command -D ${to_delete}"
   fi
 
   if [ "$create_catalog" = true ]; then
