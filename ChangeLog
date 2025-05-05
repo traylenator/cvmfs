@@ -1,4 +1,15 @@
+2.13.0:
+  * [client] Improved EIO logging (#3723)
+  * [client] chksetup: use max-time instead of connect-timeout to avoid blocking (#3822)
+  * Fix ingest command to allow deletions of paths containing colons (:) (#3792)
+  * [gateway, ducc, snapshotter] bump and cleanup golang dependencies
+  * [rpm] fix permissions for cvmfs_ducc (#3790)
+  * [client] Install apparmor profile for fusermount3/cvmfs (#3791)
+  * [shrinkwrap] ensure that directories are writeable to avoid copy errors (#3798)
+  * [macos] fix chksetup for macfuse (#3800)
+
 2.12.7:
+  * [rpm] Apply %pretrans transaction check in most subpackages (#3779)
   * [server] Fix for cvmfs_server transaction -t, update repository state after waiting for lease (#3771)
 
 2.12.6:
