@@ -27,7 +27,7 @@ func init() {
 }
 
 var convertSingleImageCmd = &cobra.Command{
-	Use:   "convert-single-image [image to convert] [cvmfs repository]",
+	Use:   "convert-single-image <image to convert> <cvmfs repository>",
 	Short: "Convert a single image",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
