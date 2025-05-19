@@ -1,4 +1,6 @@
 2.13.0:
+  * [client] Fixed unmounting after stopping autofs in Ubuntu 24.04 (#3808)
+  * [client] Add cvmfs_config killall options -r(reset fuse) / -s(stuck fuse reset) to abort fuse connection (#3831)
   * [client] Improved EIO logging (#3723)
   * [client] chksetup: Now uses max-time instead of connect-timeout to avoid blocking when contacting stratum 1s (#3822)
   * [server] Fixed garbage collection lock to avoid spurious check failures (#3815)
