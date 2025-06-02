@@ -42,6 +42,7 @@ type ManifestListItem struct {
 		OS           string
 		Variant      *string
 	}
+	Manifest Manifest
 }
 
 type ThinImageLayer struct {

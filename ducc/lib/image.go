@@ -34,17 +34,18 @@ type ManifestRequest struct {
 }
 
 type Image struct {
-	Id          int
-	User        string
-	Scheme      string
-	Registry    string
-	Repository  string
-	Tag         string
-	Digest      string
-	IsThin      bool
-	TagWildcard bool
-	Manifest    *da.Manifest
-	OCIImage    *image.Image
+	Id           int
+	User         string
+	Scheme       string
+	Registry     string
+	Repository   string
+	Tag          string
+	Digest       string
+	IsThin       bool
+	TagWildcard  bool
+	Manifest     *da.Manifest
+	OCIImage     *image.Image
+	ManifestList *da.ManifestList
 }
 
 type Credentials struct {
@@ -176,6 +177,79 @@ func (img *Image) PrintImage(machineFriendly, csv_header bool) {
 	}
 }
 
+func (img *Image) FetchManifestList2() (*da.ManifestList, error) {
+	bytes1, err := img.getByteManifestList()
+	if err != nil {
+		return nil, err
+	}
+
+	var manifestList da.ManifestList
+	err = json.Unmarshal(bytes1, &manifestList)
+	if err != nil {
+		return nil, err
+	}
+	if reflect.DeepEqual(da.ManifestList{}, manifestList) {
+		return nil, fmt.Errorf("got empty manifest list")
+	}
+
+	var validIndex []int
+	var manifestReference string
+	if len(manifestList.Manifests) == 1 {
+		manifestReference = manifestList.Manifests[0].Digest
+	} else {
+
+		for i, v := range manifestList.Manifests {
+			if v.Platform.Architecture == "amd64" {
+				manifestReference = v.Digest
+
+			}
+			// skip "unknown" architecture
+			if v.Platform.Architecture != "unknown" {
+				validIndex = append(validIndex, i)
+
+			}
+		}
+	}
+
+	manifestsFiltered := make([]da.ManifestListItem, 0)
+	for _, j := range validIndex {
+		manifestsFiltered = append(manifestsFiltered, manifestList.Manifests[j])
+	}
+	manifestList.Manifests = manifestsFiltered
+
+	for i, v := range manifestList.Manifests {
+		bytes2, err := img.getByteManifest(v.Digest)
+		if err != nil {
+			return nil, err
+		}
+
+		var manifest da.Manifest
+		err = json.Unmarshal(bytes2, &manifest)
+		if err != nil {
+			return nil, err
+		}
+		if reflect.DeepEqual(da.Manifest{}, manifest) {
+			return nil, fmt.Errorf("got empty manifest")
+		}
+		manifestList.Manifests[i].Manifest = manifest
+	}
+	bytes2, err := img.getByteManifest(manifestReference)
+	if err != nil {
+		return nil, err
+	}
+
+	var manifest da.Manifest
+	err = json.Unmarshal(bytes2, &manifest)
+	if err != nil {
+		return nil, err
+	}
+	if reflect.DeepEqual(da.Manifest{}, manifest) {
+		return nil, fmt.Errorf("got empty manifest")
+	}
+	img.Manifest = &manifest
+	return &manifestList, nil
+}
+
 func (img *Image) fetchManifest() (*da.Manifest, error) {
 	bytes, err := img.getByteManifest("")
 	if err != nil {
@@ -238,6 +312,34 @@ func (img *Image) fetchManifestList() (*da.Manifest, error) {
 
 	img.Manifest = &manifest
 	return &manifest, nil
+}
+
+func (img *Image) GetManifestList() (da.ManifestList, error) {
+	if img.ManifestList != nil {
+		return *img.ManifestList, nil
+	}
+
+	var manifestList da.ManifestList
+	// First try to fetch a simple manifest
+	manifest, err := img.fetchManifest()
+
+	if err != nil || manifest.MediaType == "application/vnd.docker.distribution.manifest.list.v2+json" || manifest.MediaType == "application/vnd.oci.image.index.v1+json" {
+		// If the first fetch fails, try to fetch from a manifest list
+		manifestList2, err := img.FetchManifestList2()
+		if err != nil {
+			return da.ManifestList{}, fmt.Errorf("could not retrieve manifestlist for %s", img.WholeName())
+		}
+		return *manifestList2, nil
+	} else if err == nil {
+		var placeholderitem da.ManifestListItem
+		placeholderitem.Manifest = *manifest
+		placeholderitem.Platform.Architecture = "amd64" //for images without manifestlist, assume amd64 arch
+		manifestList.Manifests = append(manifestList.Manifests, placeholderitem)
+		manifestList.MediaType = "SingleManifest"
+
+	}
+
+	return manifestList, nil
 }
 
 func (img *Image) GetManifest() (da.Manifest, error) {
@@ -472,6 +574,7 @@ func (img *Image) getByteManifestList() ([]byte, error) {
 }
 
 func (img *Image) getByteManifest(reference string) ([]byte, error) {
+
 	url := img.GetManifestUrl(reference)
 	return makeGetRequest(url, map[string]string{"Accept": "application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json"})
 }
