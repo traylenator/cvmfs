@@ -152,6 +152,7 @@ if (BUILD_SERVER)
        ${CVMFS_SOURCE_DIR}/backoff.cc
        ${CVMFS_SOURCE_DIR}/catalog.cc
        ${CVMFS_SOURCE_DIR}/catalog_counters.cc
+       ${CVMFS_SOURCE_DIR}/catalog_downloader.cc
        ${CVMFS_SOURCE_DIR}/catalog_sql.cc
        ${CVMFS_SOURCE_DIR}/catalog_rw.cc
        ${CVMFS_SOURCE_DIR}/catalog_mgr_ro.cc
@@ -284,6 +285,7 @@ set(CVMFS_UNITTEST_SOURCES
   ../common/testutil.cc
   ../common/catalog_test_tools.cc
 
+  t_acl.cc
   t_assert_or_log.cc
   t_atomic.cc
   t_authz_fetch.cc
@@ -401,6 +403,7 @@ set(CVMFS_UNITTEST_SOURCES
   t_wpad.cc
   t_xattr.cc
 
+  ${CVMFS_SOURCE_DIR}/acl.cc
   ${CVMFS_SOURCE_DIR}/authz/authz.cc
   ${CVMFS_SOURCE_DIR}/authz/authz_curl.cc
   ${CVMFS_SOURCE_DIR}/authz/authz_fetch.cc
@@ -416,6 +419,7 @@ set(CVMFS_UNITTEST_SOURCES
   ${CVMFS_SOURCE_DIR}/cache_transport.cc
   ${CVMFS_SOURCE_DIR}/catalog.cc
   ${CVMFS_SOURCE_DIR}/catalog_counters.cc
+  ${CVMFS_SOURCE_DIR}/catalog_downloader.cc
   ${CVMFS_SOURCE_DIR}/catalog_mgr_client.cc
   ${CVMFS_SOURCE_DIR}/catalog_mgr_ro.cc
   ${CVMFS_SOURCE_DIR}/catalog_mgr_rw.cc
@@ -477,7 +481,6 @@ set(CVMFS_UNITTEST_SOURCES
   ${CVMFS_SOURCE_DIR}/quota.cc
   ${CVMFS_SOURCE_DIR}/quota_posix.cc
   ${CVMFS_SOURCE_DIR}/receiver/commit_processor.cc
-  ${CVMFS_SOURCE_DIR}/receiver/lease_path_util.cc
   ${CVMFS_SOURCE_DIR}/receiver/params.cc
   ${CVMFS_SOURCE_DIR}/receiver/payload_processor.cc
   ${CVMFS_SOURCE_DIR}/receiver/reactor.cc
