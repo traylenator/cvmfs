@@ -23,8 +23,8 @@ func GetTestRegistryUrl() string {
 func AdditionalTestFlags() {
 
 	*MockCvmfs = (os.Getenv("TEST_DUCC_NOMOCK") == "")
-	*Online = (os.Getenv("TEST_DUCC_ONLINE") == "")
-	*LocalRegistry = !(os.Getenv("TEST_DUCC_NOLOCALREGISTRY") == "")
+	*Online = (os.Getenv("TEST_DUCC_ONLINE") != "")
+	*LocalRegistry = (os.Getenv("TEST_DUCC_NOLOCALREGISTRY") == "")
 }
 
 func MockCvmfsSetup() {
