@@ -1,3 +1,7 @@
+
+2.14:
+  * [server] Change gc -a to only do repos where gc was run on the stratum0 (#3895)
+
 2.13.1:
   * [client] Fix mount options that can lead to "futimes" error with docker (#3872)
   * [rpm] Allow builds without libfuse2 (#3879)
