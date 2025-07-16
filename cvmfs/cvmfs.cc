@@ -75,6 +75,7 @@
 #include "crypto/crypto_util.h"
 #include "crypto/hash.h"
 #include "directory_entry.h"
+#include "duplex_fuse.h"
 #include "fence.h"
 #include "fetch.h"
 #include "file_chunk.h"
@@ -119,6 +120,7 @@ using namespace std;  // NOLINT
 
 namespace cvmfs {
 
+#ifndef __TEST_CVMFS_MOCKFUSE // will be mocked in tests
 FileSystem *file_system_ = NULL;
 MountPoint *mount_point_ = NULL;
 TalkManager *talk_mgr_ = NULL;
@@ -126,6 +128,7 @@ NotificationClient *notification_client_ = NULL;
 Watchdog *watchdog_ = NULL;
 FuseRemounter *fuse_remounter_ = NULL;
 InodeGenerationInfo inode_generation_info_;
+#endif // __TEST_CVMFS_MOCKFUSE
 
 
 /**
@@ -222,7 +225,7 @@ void GetReloadStatus(bool *drainout_mode, bool *maintenance_mode) {
   *maintenance_mode = fuse_remounter_->IsInMaintenanceMode();
 }
 
-
+#ifndef __TEST_CVMFS_MOCKFUSE // will be mocked in tests
 static bool UseWatchdog() {
   if (loader_exports_ == NULL || loader_exports_->version < 2) {
     return true;  // spawn watchdog by default
@@ -232,6 +235,7 @@ static bool UseWatchdog() {
 
   return !loader_exports_->disable_watchdog;
 }
+#endif
 
 std::string PrintInodeGeneration() {
   return "init-catalog-revision: "
@@ -1545,7 +1549,7 @@ static void cvmfs_release(fuse_req_t req, fuse_ino_t ino,
 
   ino = mount_point_->catalog_mgr()->MangleInode(ino);
   LogCvmfs(kLogCvmfs, kLogDebug, "cvmfs_release on inode: %" PRIu64,
-           uint64_t(ino));
+  uint64_t(ino));
 
 #ifdef __APPLE__
   if (fi->fh == kFileHandleIgnore) {
@@ -2158,6 +2162,8 @@ string *g_boot_error = NULL;
 __attribute__((
     visibility("default"))) loader::CvmfsExports *g_cvmfs_exports = NULL;
 
+
+#ifndef __TEST_CVMFS_MOCKFUSE // will be mocked in tests
 /**
  * Begin section of cvmfs.cc-specific magic extended attributes
  */
@@ -2432,6 +2438,7 @@ static int Init(const loader::LoaderExports *loader_exports) {
 
   return loader::kFailOk;
 }
+#endif // __TEST_CVMFS_MOCKFUSE
 
 
 /**
@@ -2571,7 +2578,7 @@ static bool MaintenanceMode(const int fd_progress) {
   return true;
 }
 
-
+#ifndef __TEST_CVMFS_MOCKFUSE
 static bool SaveState(const int fd_progress, loader::StateList *saved_states) {
   string msg_progress;
 
@@ -3002,6 +3009,7 @@ static void FreeSavedState(const int fd_progress,
     }
   }
 }
+#endif
 
 
 static void __attribute__((constructor)) LibraryMain() {
@@ -3013,9 +3021,11 @@ static void __attribute__((constructor)) LibraryMain() {
   g_cvmfs_exports->fnFini = Fini;
   g_cvmfs_exports->fnGetErrorMsg = GetErrorMsg;
   g_cvmfs_exports->fnMaintenanceMode = MaintenanceMode;
+  #ifndef __TEST_CVMFS_MOCKFUSE
   g_cvmfs_exports->fnSaveState = SaveState;
   g_cvmfs_exports->fnRestoreState = RestoreState;
   g_cvmfs_exports->fnFreeSavedState = FreeSavedState;
+  #endif
   cvmfs::SetCvmfsOperations(&g_cvmfs_exports->cvmfs_operations);
 }
 
