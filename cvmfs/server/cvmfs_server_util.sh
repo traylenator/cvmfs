@@ -360,30 +360,94 @@ __hc_transition() {
 }
 
 
+# Find an available file descriptor
+find_available_fd()
+{
+  # dash only supports single-digit file descriptors so the number
+  # of locks available is limited
+  local fd=3
+  local max=10
+  while [ $fd -lt $max ]; do
+    if [ ! -e /proc/$$/fd/$fd ]; then
+      echo $fd
+      return
+    fi
+    fd=$((fd + 1))
+  done
+  die "No file descriptor available"
+}
+
 ### Locking functions
 
+_lock_fds=""
+_lock_paths=""
 
 acquire_lock() {
   local path="$1"
+  local wait_for_lock="${2:-0}"
   local lock_file="${path}.lock"
-  exec 9<>${lock_file}
-  flock -n 9
-}
-
-
-wait_and_acquire_lock() {
-  local path="$1"
-  local lock_file="${path}.lock"
-  exec 9<>${lock_file}
-  flock 9
+  local lock_fd
+  while true; do
+    lock_fd=$(find_available_fd)
+    eval "exec ${lock_fd}<>${lock_file}"
+    if [ $wait_for_lock -eq 0 ]; then
+      if ! flock -n ${lock_fd}; then
+        # didn't get it, clean up and return failure
+        eval "exec ${lock_fd}<&-"
+        return 1
+      fi
+    else
+      flock ${lock_fd}
+    fi
+    # now have the lock
+    if [ -f $lock_file ]; then
+      # was not removed by the former lock holder, good
+      break
+    fi
+    # was removed by former lock holder; close and try again
+    eval "exec ${lock_fd}<&-"
+  done
+  # add the fd number and path to the two lists
+  _lock_fds="$_lock_fds $lock_fd"
+  _lock_paths="$_lock_paths $path"
 }
 
 
 release_lock() {
   local path="$1"
   local lock_file="${path}.lock"
+  local lock_fd=-1
+  # Find the index of $path in $_lock_paths and from that find $lock_fd.
+  # Would be much easier with an associative array if we could rely on bash.
+  local index=0
+  local lock_index=0
+  local lock_path
+  local new_paths=""
+  for lock_path in $_lock_paths; do
+    index=$((index + 1))
+    if [ "$path" = "$lock_path" ]; then
+      lock_index=$index
+    else
+      new_paths="$new_paths $lock_path"
+    fi
+  done
+  [ "$lock_index" != 0 ] || die "attempt to release $path lock when it was not acquired"
+  index=0
+  local fd
+  local new_fds
+  for fd in $_lock_fds; do
+    index=$((index + 1))
+    if [ "$index" = "$lock_index" ]; then
+      lock_fd=$fd
+    else
+      new_fds="$new_fds $fd"
+    fi
+  done
+  [ "$lock_fd" != -1 ] || die "_lock_fds and _lock_paths out of sync while releasing $path lock"
+  _lock_fds="$new_fds"
+  _lock_paths="$new_paths"
   rm -f $lock_file
-  exec 9<&-
+  eval "exec ${lock_fd}<&-"
 }
 
 
@@ -573,12 +637,14 @@ check_overlayfs_version() {
     if compare_versions "$krnl_version" -ge "$required_version" ; then
       # If the mounted filesystem name is long df will split output into two
       #  lines, so use tail -n +2 to skip first line and echo to combine them
-      local scratch_fstype=$(echo $(df -T /var/spool/cvmfs | tail -n +2) | awk {'print $2'})
+      local scratch_line="$(echo $(df -T /var/spool/cvmfs | tail -n +2))"
+      local scratch_fstype=$(echo $scratch_line | awk {'print $2'})
       if [ "x$scratch_fstype" = "xext3" ] || [ "x$scratch_fstype" = "xext4" ] ; then
         return 0
       fi
       if [ "x$scratch_fstype" = "xxfs" ] ; then
-        if [ "x$(xfs_info /var/spool/cvmfs 2>/dev/null | grep ftype=1)" != "x" ] ; then
+        local scratch_fsmnt=$(echo $scratch_line | awk {'print $7'})
+        if [ "x$(xfs_info $scratch_fsmnt 2>/dev/null | grep ftype=1)" != "x" ] ; then
           return 0
         else
           echo "XFS with ftype=0 is not supported for /var/spool/cvmfs. XFS with ftype=1 is required"
