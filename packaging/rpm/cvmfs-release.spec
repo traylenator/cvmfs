@@ -1,6 +1,6 @@
 Name:           cvmfs-release
 Version:        6
-Release:        3
+Release:        4
 Summary:        Packages for the CernVM File System
 
 Group:          Applications/System
@@ -73,7 +73,7 @@ fi
 if  [[ "$ID" == "fedora" ]]; then
 sed -i 's/EL/fedora/g' /etc/yum.repos.d/cernvm.repo
 fi
-if  [[ " $ID_LIKE " == *" rhel "* ]]; then
+if  [[ "$ID" == "rhel" || " $ID_LIKE " == *" rhel "* ]]; then
   VERSION_MAJOR=$(echo ${VERSION_ID} | cut -d '.' -f1)
   if [[ "${VERSION_MAJOR}" -ge "10" ]]; then
      sed -i 's/RPM-GPG-KEY-CernVM/RPM-GPG-KEY-CernVM-2048/g' /etc/yum.repos.d/cernvm.repo
@@ -83,6 +83,8 @@ fi
 
 
 %changelog
+* Thu Oct 09 2025 Valentin Volkl <vavolkl@cern.ch> - 6-4
+- Fix postinst for RHEL itself
 * Fri Jun 27 2025 Valentin Volkl <vavolkl@cern.ch> - 6-3
 - Fix postinst for RHEL-clones that aren't Alma
 * Thu Jun 26 2025 Valentin Volkl <vavolkl@cern.ch> - 6-2
