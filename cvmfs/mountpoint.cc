@@ -164,8 +164,6 @@ bool FileSystem::CheckPosixCacheSettings(
 FileSystem *FileSystem::Create(const FileSystem::FileSystemInfo &fs_info) {
   UniquePtr<FileSystem> file_system(new FileSystem(fs_info));
 
-  file_system->SetupGlobalEnvironmentParams();
-
   file_system->SetupLogging();
   LogCvmfs(kLogCvmfs, kLogDebug, "Options:\n%s",
            file_system->options_mgr()->Dump().c_str());
@@ -840,31 +838,8 @@ bool FileSystem::SetupCwd() {
 }
 
 
-/**
- * Environment variables useful, e.g., for variant symlinks
- */
-void FileSystem::SetupGlobalEnvironmentParams() {
-  setenv("CVMFS_ARCH", GetArch().c_str(), 1 /* overwrite */);
-
-  // Set CVMFS_VERSION environment variable
-  setenv("CVMFS_VERSION", CVMFS_VERSION, 1 /* overwrite */);
-
-  // Calculate and set CVMFS_VERSION_NUMERIC
-  // Format: major * 10000 + minor * 100 + patch
-  // Example: 2.13.2 becomes 21302
-  const int version_numeric = CVMFS_VERSION_MAJOR * 10000
-                              + CVMFS_VERSION_MINOR * 100 + CVMFS_VERSION_PATCH;
-  char version_numeric_str[16];
-  snprintf(version_numeric_str, sizeof(version_numeric_str), "%d",
-           version_numeric);
-  setenv("CVMFS_VERSION_NUMERIC", version_numeric_str, 1 /* overwrite */);
-}
-
-
 void FileSystem::SetupLoggingStandalone(const OptionsManager &options_mgr,
                                         const std::string &prefix) {
-  SetupGlobalEnvironmentParams();
-
   string optarg;
   if (options_mgr.GetValue("CVMFS_SYSLOG_LEVEL", &optarg))
     SetLogSyslogLevel(String2Uint64(optarg));
