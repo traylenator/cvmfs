@@ -7,6 +7,7 @@
   * [client] Fix spurious "failed to umount" messages (#3970)
   * [server] Fix updating of last_gc when no gc is run under gc -a without dry run (#3947)
   * [geoip] Change geoip database to openhtc source by default (#3967)
+  * [client] Add CVMFS_PREMOUNT_FUSE option to allow fallback to fusermount (#4017)
 
 2.13.2:
   * [client] Fix loader return value when automounter unmounts (#3929)
